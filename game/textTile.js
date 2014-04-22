@@ -2,9 +2,9 @@
  * Text tile constructor
  * @constructor
  */
-function TextTile() {
+function TextTile(game) {
   this.paperObject = null;
-
+  this.game = null;
   this.draggable = true;
   this.dragging = false;
   this.originalPosition = null;
@@ -26,9 +26,7 @@ TextTile.prototype.draw = function(position, size) {
   var textTile = new paper.Group(tile, text);
   textTile.position = position;
 
-  this.draggable = true;
   this.char = text.content;
-  this.offBoardPosition = textTile.position;
   this.paperObject = textTile;
 };
 
@@ -38,5 +36,5 @@ TextTile.prototype.draw = function(position, size) {
  */
 TextTile.prototype.chooseChar = function(pool) {
   var random = Math.floor(Math.random(pool.length) * pool.length);
-  this.char = pool.splice(random, 1).toString().toUpperCase();
+  this.char = pool[random].toString().toUpperCase();
 };

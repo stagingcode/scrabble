@@ -2,9 +2,10 @@
  * Board constructor
  * @constructor
  */
-function Board() {
+function Board(game) {
   this.tiles = [];
 
+  this.game = game;
   this.paperObject = null;
 
   this.width = 600;
@@ -14,7 +15,9 @@ function Board() {
 
   this.tileCount = 15;
 
-  this.wordTiles = [];
+  this.textTiles = [];
+
+  this.selectedTiles = [];
 }
 
 /**
@@ -35,90 +38,36 @@ Board.prototype.getTileByIndex = function(xIndex, yIndex) {
 };
 
 /**
+ * Selects given tile
+ *
+ * @param tile
+ */
+Board.prototype.selectTile = function(tile) {
+  this.selectedTiles.push(tile);
+
+  tile.children[1].fillColor = 'green';
+};
+
+/**
+ * Unselects all tile previously selected
+ */
+Board.prototype.unselectTiles = function() {
+  for(var tile in this.selectedTiles) {
+    if(this.selectedTiles.hasOwnProperty(tile)) {
+      this.selectedTiles[tile].children[1].fillColor = 'white';
+    }
+  }
+
+  this.selectedTiles = [];
+};
+
+/**
  * Check for a word in dictionary
  * @param word
  * @returns {boolean}
  */
 Board.prototype.checkDictionary = function(word) {
   return (dictionary.indexOf(word) !== -1);
-};
-
-/**
- * Marks tiles valid so they won't be removed
- */
-Board.prototype.markTilesValid = function(tiles) {
-  for(var t in tiles) {
-    tiles[t].valid =  true;
-  }
-};
-
-/**
- * Validates board
- * @param game
- */
-Board.prototype.validateBoard = function(game) {
-
-  for(var t in this.tiles) {
-    var tile = this.tiles[t];
-
-    // words that go down
-    if(this.getTileByIndex(tile.xIndex, tile.yIndex+1).textTile
-      && !this.getTileByIndex(tile.xIndex, tile.yIndex-1).textTile) {
-      var wordDown = this.getWord(tile, '', 'down');
-      if(wordDown != '' && dictionary.indexOf(wordDown) !== -1) {
-        // CORRECT WORD
-        this.markTilesValid(this.wordTiles);
-        this.wordTiles = [];
-      }
-    }
-
-    // words that go right
-    if(this.getTileByIndex(tile.xIndex+1, tile.yIndex).textTile
-      && !this.getTileByIndex(tile.xIndex-1, tile.yIndex).textTile) {
-      var wordRight = this.getWord(tile, '', 'right');
-      if(wordRight != '' && dictionary.indexOf(wordRight) !== -1) {
-        // CORRECT WORD
-        this.markTilesValid(this.wordTiles);
-        this.wordTiles = [];
-      }
-    }
-
-    if(tile.textTile && (!tile.valid || !this.checkAdjacent(tile))) {
-      tile.textTile.paperObject.position = tile.textTile.offBoardPosition;
-      tile.textTile = null;
-      tile.occupied = false;
-    }
-
-    if(tile.textTile && tile.valid && !tile.processed) {
-      tile.textTile.draggable = false;
-      tile.textTile.paperObject.children[1].fillColor = 'green';
-
-      // pull new tile for the user
-      var newTextTile = new TextTile();
-      newTextTile.chooseChar(game.charPool);
-      newTextTile.draw(tile.textTile.offBoardPosition, new paper.Size(38, 38));
-
-      game.userTiles.push(newTextTile);
-
-      tile.processed = true;
-    }
-  }
-};
-
-/**
- * Gets word starting from given tile in given direction
- * @param tile
- * @param word
- */
-Board.prototype.getWord = function(tile, word, direction) {
-
-  if(!tile.textTile) {
-    return word;
-  } else {
-    this.wordTiles.push(tile);
-    word += tile.textTile.char;
-    return this.getWord(this.checkAdjacent(tile, direction), word, direction);
-  }
 };
 
 /**
@@ -178,22 +127,13 @@ Board.prototype.checkAdjacent = function(tile, direction) {
 
 /**
  * Function to draw the board
- * @param game
  */
-Board.prototype.draw = function(game) {
+Board.prototype.draw = function() {
   var self = this;
   var board = new paper.Path.Rectangle(new paper.Point(0, 0), new paper.Size(this.width, this.height));
   board.fillColor = '#f2f2f2';
 
   this.paperObject = board;
-
-  /* draw validating button */
-  var validationBtn = new paper.Path.Rectangle(new paper.Point(this.width, this.height), new paper.Size(40, 40));
-  validationBtn.fillColor = 'green';
-
-  validationBtn.onMouseDown = function(event) {
-    self.validateBoard(game);
-  };
 
   this.generateTiles();
 };
@@ -203,17 +143,27 @@ Board.prototype.draw = function(game) {
  * Scrabble board consists of 15x15 tiles
  */
 Board.prototype.generateTiles = function() {
-
   for(var x = 0;x < this.tileCount;x++) {
     for(var y = 0;y < this.tileCount;y++) {
 
       var xLoc = x * this.tileSize;
       var yLoc = y * this.tileSize;
+      var position = new paper.Point(xLoc, yLoc);
+      var size = new paper.Size(this.tileSize, this.tileSize);
 
-      var tile = new BoardTile();
+      var tile = new BoardTile(this.game);
       tile.xIndex = x;
       tile.yIndex = y;
-      tile.draw(new paper.Point(xLoc, yLoc), new paper.Size(this.tileSize, this.tileSize));
+      tile.draw(position, size);
+
+      var textTile = new TextTile(this.game);
+      // first get char for the textTile
+      textTile.chooseChar(this.game.charPool);
+      textTile.draw(position.add(20), size.subtract(1));
+
+      tile.textTile = textTile;
+
+      this.textTiles.push(textTile);
       this.tiles.push(tile);
     }
   }

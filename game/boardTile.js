@@ -2,8 +2,9 @@
  * BoardTile constructor
  * @constructor
  */
-function BoardTile() {
+function BoardTile(game) {
   this.paperObject = null;
+  this.game = null;
 
   this.occupied = false;
   this.processed = false;
@@ -28,6 +29,5 @@ BoardTile.prototype.draw = function(position, size) {
     tileFiller.fillColor = '#ccc';
   }
 
-  var tileGroup = new paper.Group(tile, tileFiller);
-  this.paperObject = tileGroup;
+  this.paperObject = new paper.Group(tile, tileFiller);
 };
