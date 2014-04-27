@@ -1,5 +1,6 @@
 /**
  * Board constructor
+ *
  * @constructor
  */
 function Board(game) {
@@ -11,7 +12,7 @@ function Board(game) {
   this.width = 600;
   this.height = 600;
 
-  this.tileSize = 40;
+  this.tileSize = new paper.Size(40, 40);
 
   this.tileCount = 15;
 
@@ -22,6 +23,7 @@ function Board(game) {
 
 /**
  * Gets board tile using it's x and y indexes
+ *
  * @param xIndex
  * @param yIndex
  * @returns {*}
@@ -61,13 +63,14 @@ Board.prototype.unselectTiles = function() {
     }
   }
 
-  console.log(word);
-
   if(this.checkDictionary(word)) {
     // word exists remove tiles
     for(var tile in this.selectedTiles) {
       if(this.selectedTiles.hasOwnProperty(tile)) {
+        var boardTile = this.selectedTiles[tile].data.tile.boardTile;
         this.selectedTiles[tile].remove();
+        boardTile.textTile = null;
+        this.addTextTile(boardTile, boardTile.paperObject.position);
       }
     }
   }
@@ -76,7 +79,15 @@ Board.prototype.unselectTiles = function() {
 };
 
 /**
+ * Moves the tiles where needed
+ */
+Board.prototype.moveTiles = function() {
+
+};
+
+/**
  * Check for a word in dictionary
+ *
  * @param word
  * @returns {boolean}
  */
@@ -153,6 +164,25 @@ Board.prototype.draw = function() {
 };
 
 /**
+ * Generates textTile for the boardTile
+ *
+ * @param boardTile
+ * @param pos
+ * @return *
+ */
+Board.prototype.addTextTile = function(boardTile, pos) {
+  var textTile = new TextTile(this.game);
+  // first get char for the textTile
+  textTile.chooseChar(this.game.charPool);
+  textTile.draw(pos, this.tileSize.subtract(1));
+  textTile.boardTile = boardTile;
+
+  boardTile.textTile = textTile;
+
+  return textTile;
+};
+
+/**
  * Generates tiles on the board
  * Scrabble board consists of 15x15 tiles
  */
@@ -160,24 +190,16 @@ Board.prototype.generateTiles = function() {
   for(var x = 0;x < this.tileCount;x++) {
     for(var y = 0;y < this.tileCount;y++) {
 
-      var xLoc = x * this.tileSize;
-      var yLoc = y * this.tileSize;
+      var xLoc = x * this.tileSize.width;
+      var yLoc = y * this.tileSize.height;
       var position = new paper.Point(xLoc, yLoc);
-      var size = new paper.Size(this.tileSize, this.tileSize);
 
       var tile = new BoardTile(this.game);
       tile.xIndex = x;
       tile.yIndex = y;
-      tile.draw(position, size);
+      tile.draw(position, this.tileSize);
 
-      var textTile = new TextTile(this.game);
-      // first get char for the textTile
-      textTile.chooseChar(this.game.charPool);
-      textTile.draw(position.add(20), size.subtract(1));
-
-      tile.textTile = textTile;
-
-      this.textTiles.push(textTile);
+      this.textTiles.push(this.addTextTile(tile, position.add(20)));
       this.tiles.push(tile);
     }
   }
