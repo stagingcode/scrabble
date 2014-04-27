@@ -26,14 +26,14 @@ Scrabble.prototype.assingHandlers = function() {
   var selecting = false;
 
   tool.onMouseDown = function(event) {
-    if(event.item) {
+    if(event.item && event.item.data.tile) {
       game.board.selectTile(event.item);
       selecting = true;
     }
   };
 
   tool.onMouseMove = function(event) {
-    if(selecting && event.item && game.board.selectedTiles.indexOf(event.item)) {
+    if(selecting && event.item && event.item.data.tile && game.board.selectedTiles.indexOf(event.item) === -1) {
       game.board.selectTile(event.item);
     }
   };

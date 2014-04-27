@@ -52,9 +52,23 @@ Board.prototype.selectTile = function(tile) {
  * Unselects all tile previously selected
  */
 Board.prototype.unselectTiles = function() {
+  var word = '';
+
   for(var tile in this.selectedTiles) {
     if(this.selectedTiles.hasOwnProperty(tile)) {
+      word += this.selectedTiles[tile].data.tile.char;
       this.selectedTiles[tile].children[1].fillColor = 'white';
+    }
+  }
+
+  console.log(word);
+
+  if(this.checkDictionary(word)) {
+    // word exists remove tiles
+    for(var tile in this.selectedTiles) {
+      if(this.selectedTiles.hasOwnProperty(tile)) {
+        this.selectedTiles[tile].remove();
+      }
     }
   }
 

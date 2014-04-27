@@ -25,6 +25,7 @@ TextTile.prototype.draw = function(position, size) {
 
   var textTile = new paper.Group(tile, text);
   textTile.position = position;
+  textTile.data.tile = this;
 
   this.char = text.content;
   this.paperObject = textTile;
